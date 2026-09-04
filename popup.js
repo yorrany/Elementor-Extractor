@@ -11,6 +11,7 @@
   const btnCopy = $('#btn-copy');
   const btnDownload = $('#btn-download');
   const btnInject = $('#btn-inject');
+  const btnClear = $('#btn-clear');
   const inspectorStatus = $('#inspector-status');
   const actionStatus = $('#action-status');
   const captureInfo = $('#capture-info');
@@ -191,6 +192,19 @@
         : 'Dados gravados. Use Ctrl+V ou botão direito → Colar no editor.', 'ok');
     } else if (res && res.reason === 'no-capture') {
       setActionStatus('Nenhuma captura. Capture uma seção primeiro.', 'err');
+    } else {
+      setActionStatus('Abra o editor do Elementor nesta aba e tente novamente.', 'err');
+    }
+  });
+
+  btnClear.addEventListener('click', async () => {
+    setActionStatus('');
+    const res = await sendToActiveTab({ type: 'CLEAR_CLIPBOARD' });
+    if (res && res.ok) {
+      chrome.storage.local.remove([CAPTURE_KEY]);
+      lastSerialized = null;
+      render();
+      setActionStatus('Clipboard do Elementor limpo.', 'ok');
     } else {
       setActionStatus('Abra o editor do Elementor nesta aba e tente novamente.', 'err');
     }

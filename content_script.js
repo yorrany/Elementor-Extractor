@@ -764,6 +764,22 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
+  function clearElementorClipboard() {
+    try {
+      const raw = localStorage.getItem('elementor');
+      if (raw) {
+        const store = JSON.parse(raw);
+        if (store && typeof store === 'object' && store.clipboard !== undefined) {
+          delete store.clipboard;
+          localStorage.setItem('elementor', JSON.stringify(store));
+        }
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function injectIntoElementor(payloadText) {
     let parsed;
     try {
@@ -834,9 +850,7 @@
       <div class="esc-toolbar-status"></div>
     `;
     return bar;
-  }
-
-  function positionHighlight(el) {
+  }  function positionHighlight(el) {
     if (!el || !highlightEl) return;
     const rect = el.getBoundingClientRect();
     highlightEl.style.top = rect.top + 'px';
@@ -921,9 +935,14 @@
     saveSerialized(serialized);
     if (copy) {
       const ok = await copyText(serialized.clipboardText);
-      setStatus(ok
-        ? 'Copiado! No Elementor: botão direito → "Colar de outro site" → Ctrl+V'
-        : 'Falha ao copiar.');
+      if (window.elementor) {
+        injectIntoElementor(serialized.clipboardText);
+        setStatus('Copiado e atualizado no editor. Use Ctrl+V ou botão direito → Colar.');
+      } else {
+        setStatus(ok
+          ? 'Copiado! No Elementor: botão direito → "Colar de outro site" → Ctrl+V'
+          : 'Falha ao copiar.');
+      }
     } else {
       downloadText(serialized.templateText, 'elementor-section.json');
       setStatus('Arquivo .json baixado. Importe em Elementor → Templates → Importar.');
@@ -950,6 +969,12 @@
             return;
           }
           sendResponse(injectIntoElementor(serialized.clipboardText));
+        });
+        return true;
+      case 'CLEAR_CLIPBOARD':
+        const cleared = clearElementorClipboard();
+        chrome.storage.local.remove([CAPTURE_KEY], () => {
+          sendResponse({ ok: true, cleared });
         });
         return true;
       default:
