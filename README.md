@@ -7,7 +7,7 @@ Extensão para **Google Chrome / Edge / Brave** (Manifest V3) que inspeciona, se
 1. **Inspetor visual** com overlay de hover (destaque) e barra de ferramentas flutuante.
 2. **Captura profunda** do nó selecionado: clona a árvore, extrai os estilos computados essenciais de cada elemento via `getComputedStyle`, remove propriedades default/redundantes e resolve URLs relativas (`src`, `srcset`, `background-image`, fontes).
 3. **CSS com escopo fechado**: cada elemento recebe uma classe única (`ext-el-N`) dentro de um contêiner `ext-sec-<hash>`, com regras compiladas que não colidem com o CSS global do tema WordPress. Inclui `@font-face`, `@keyframes` e `@import` de Google Fonts do site de origem.
-4. **Serialização Elementor nativa**: converte a seção em **estrutura real** de containers/colunas com **widgets nativos** do Elementor — `heading` (títulos), `text-editor` (textos), `button` (botões/CTAs), `image` (imagens) e `icon-list` (listas). Elementos complexos (sliders, overlays, SVG, animações) caem em um widget `html` isolado com CSS escopado, mantendo 100% da fidelidade visual sem quebrar a editabilidade do restante.
+4. **Serialização Elementor nativa**: converte a seção em **estrutura real** de containers/colunas com **widgets nativos** do Elementor — `heading` (títulos), `text-editor` (textos), `button` (botões/CTAs), `image` (imagens) e `icon-list` (listas). Somente elementos realmente não-convertíveis (`<svg>`, `<canvas>`, `<iframe>`, vídeos) caem em um widget `html` isolado. Para fidelidade pixel-perfect de layouts complexos (sliders, overlays absolutos), use o modo **"HTML único"**.
 5. **Dois modos de inserção**:
    - **Clipboard Elementor** (payload `{type:'elementor', siteurl, elements}`) — usado pelo recurso nativo *"Colar de outro site"* do editor.
    - **JSON direto** — arquivo `.json` compatível com o importador de templates (`content`, `title`, `type`, `page_settings`).
@@ -101,8 +101,8 @@ Arquivo `.json` de template:
 
 ## Limitações conhecidas
 
-- Elementos complexos (sliders com JS, overlays com posicionamento absoluto, `<svg>`, animações) são preservados como widget `html` isolado; o restante da seção continua com widgets nativos editáveis.
-- Estados de `:hover`/`:focus` e interações JS não são reproduzidos.
+- Em modo **Widgets nativos**, posicionamentos absolutos, rotações e animações são "achatados" (o conteúdo vira widgets nativos editáveis, mas perde o efeito visual específico). Para preservar esses efeitos, use **HTML único**.
+- Elementos com `<svg>`, `<canvas>`, `<iframe>` ou vídeo são preservados como widget `html` isolado.
 - Stylesheets **cross-origin** (CDNs de terceiros) não podem ser lidos por segurança; `@font-face`/`@keyframes` desses arquivos podem não ser copiados. Google Fonts são incluídos via `@import`.
 - Scripts e iframes são removidos por segurança.
 

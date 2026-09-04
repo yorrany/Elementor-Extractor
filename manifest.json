@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Elementor Section Copier",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Capture qualquer seção visual de um site e cole no Elementor (WordPress) com 100% de fidelidade de estrutura, fontes, alinhamentos, fundos e estilização.",
   "permissions": [
     "activeTab",

@@ -323,14 +323,7 @@
   function isComplex(el) {
     if (el.querySelector('svg, canvas, iframe, video, audio, object, embed, map')) return true;
     const s = cs(el);
-    if (s.position === 'absolute' || s.position === 'fixed') return true;
-    const t = s.transform;
-    if (t && t !== 'none' && !/matrix\(1, 0, 0, 1, 0, 0\)/.test(t)) return true;
-    if (s.animationName && s.animationName !== 'none') return true;
-    for (const c of getElementChildren(el)) {
-      const cp = cs(c).position;
-      if (cp === 'absolute' || cp === 'fixed') return true;
-    }
+    if (s.position === 'fixed') return true;
     return false;
   }
 
@@ -377,8 +370,36 @@
     return makeWidget(el, 'html', { html: buildScopedHtml(el) });
   }
 
+  function textOf(el) {
+    try {
+      if (typeof el.innerText === 'string') {
+        const t = el.innerText.trim();
+        if (t) return t;
+      }
+    } catch (e) {}
+    return joinText(el).replace(/\s+/g, ' ').trim();
+  }
+
+  function joinText(el) {
+    let out = '';
+    const kids = el.childNodes;
+    for (let i = 0; i < kids.length; i++) {
+      const node = kids[i];
+      if (node.nodeType === Node.TEXT_NODE) {
+        out += node.textContent;
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const part = joinText(node);
+        if (out && !/\s$/.test(out) && part && !/^\s/.test(part)) {
+          out += ' ';
+        }
+        out += part;
+      }
+    }
+    return out;
+  }
+
   function makeHeading(el) {
-    const text = (el.textContent || '').trim();
+    const text = textOf(el);
     if (!text) return null;
     const s = cs(el);
     const level = el.tagName.toLowerCase().replace('h', '');
@@ -431,7 +452,7 @@
   }
 
   function makeButton(el) {
-    const text = (el.textContent || '').trim();
+    const text = textOf(el);
     if (!text) return null;
     const s = cs(el);
     const settings = {
@@ -475,7 +496,7 @@
     const list = direct.length ? direct : Array.from(el.querySelectorAll('li'));
     const items = [];
     list.forEach((li) => {
-      const text = (li.textContent || '').trim();
+      const text = textOf(li);
       if (!text) return;
       items.push({ _id: randomId(), text, selected_icon: detectIcon(li) });
     });
@@ -571,7 +592,7 @@
       return convertContainer(el);
     }
 
-    const text = (el.textContent || '').trim();
+    const text = textOf(el);
     if (text && getElementChildren(el).length === 0) {
       const w = makeTextEditor(el);
       return w ? [w] : [];
@@ -585,7 +606,7 @@
 
     const children = getElementChildren(el);
     if (children.length === 0) {
-      const text = (el.textContent || '').trim();
+      const text = textOf(el);
       if (text) {
         const w = makeTextEditor(el);
         return w ? [w] : [];
