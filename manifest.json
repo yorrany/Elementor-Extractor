@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Elementor Section Copier",
+  "version": "1.1.0",
+  "description": "Capture qualquer seção visual de um site e cole no Elementor (WordPress) com 100% de fidelidade de estrutura, fontes, alinhamentos, fundos e estilização.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "clipboardWrite",
+    "clipboardRead",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Elementor Section Copier"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content_script.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}
